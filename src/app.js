@@ -2,14 +2,15 @@ const express = require("express");
 const { adminAuth } = require("./middlewares/auth");
 const app = express();
 
-app.use("/admin",adminAuth)
-
-app.get("/admin/getAllData", (req, res)=>{
-    res.send("All Data Sent");
+app.get("/getUserData", (req, res)=>{
+    throw new Error("wuhdbuy");
+    
 })
 
-app.get("/admin/deleteUser", (req, res)=>{
-    res.send("Deleted a user");
+app.use("/", (err, req, res, next)=>{
+    if (err) {
+        res.status(500).send(err.message);
+    }
 })
 
 app.listen(3000, ()=>{
