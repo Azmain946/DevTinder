@@ -12,59 +12,9 @@ const { userAuth } = require("./middlewares/auth");
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signup", async (req, res) => {
-  console.log(req.body);
 
-  try {
-    validateSignUpData(req);
 
-    const { firstName, lastName, emailId, password } = req.body;
-    const passwordHash = await bcrypt.hash(password, 10);
-    console.log(passwordHash);
 
-    const user = new User({
-      firstName,
-      lastName,
-      emailId,
-      password: passwordHash,
-    });
-    await user.save();
-    res.send("User Added successfully");
-  } catch (err) {
-    res.status(400).send("Error Message: " + err.message);
-  }
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) {
-      throw new Error("EmailId is not present in DB");
-    }
-    const isPasswordValid = await user.validatePassword(password)
-
-    if (isPasswordValid) {
-      const token = await user.getJWT();
-      console.log(token);
-      res.cookie("token", token);
-      res.send("login successful!!!");
-    } else {
-      throw new Error("Password is not correct");
-    }
-  } catch (err) {
-    res.status(400).send("Error Message: " + err.message);
-  }
-});
-
-app.get("/profile", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    res.send(user);
-  } catch (err) {
-    res.status(400).send("Error Message: " + err.message);
-  }
-});
 app.get("/user", async (req, res) => {
   const userEmail = req.body.emailId;
   try {
@@ -121,6 +71,14 @@ app.patch("/user/:userId", async (req, res) => {
     res.status(400).send("Update Failed: " + err.message);
   }
 });
+
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
+const requestRouter = require("./routes/requests");
+
+app.use("/", authRouter);
+app.use("/", profileRouter);
+app.use("/", requestRouter);
 
 connectDB()
   .then(() => {
